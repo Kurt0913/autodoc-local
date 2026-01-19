@@ -83,5 +83,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <sub>Designed & Built by <a href="https://github.com/yourusername">Kurt Tendero</a></sub>
+  <sub>Designed & Built by <a href="https://github.com/Kurt0913">Kurt Tendero</a></sub>
 </div>
