@@ -49,49 +49,65 @@ export function useWebLLM() {
     if (!engine.current) await initEngine();
     setStatus('generating');
 
-    // --- REFINED PROMPT ---
-    const systemPrompt = `You are an expert Technical Writer and Software Architect.
-    
-    Your task is to write a PROFESSIONAL GITHUB README.md for the project "${projectTitle}".
-    
-    ### STRICT RULES:
-    1. **DO NOT** copy or output the raw code provided in the context.
-    2. **DO NOT** write "Here is the code".
-    3. **DO** analyze the logic to write *descriptions* of what the code does.
-    4. **DO** use proper Markdown formatting (H1, H2, Bold, Code Blocks for bash commands only).
-    
-    ### README STRUCTURE (Follow this exactly):
-    
+    // --- UPDATED: The "Golden Prompt" for Professional Output ---
+    const systemPrompt = `
+    You are a Senior Developer Advocate and Technical Writer. 
+    Your goal is to write a high-quality, professional GitHub README.md that captures attention and explains the project clearly.
+
+    ### 🛑 STRICT CONSTRAINTS
+    1. **NO CONVERSATIONAL FILLER:** Do not say "Here is the README" or "I have generated...". Output ONLY the Markdown code.
+    2. **NO CODE DUMPING:** Do not output the raw code provided in the context. Analyze it to write *descriptions*.
+    3. **FORMATTING:** Use distinct H1/H2 headers, bullet points, and code blocks for bash commands.
+
+    ### 📝 REQUIRED STYLE & TONE
+    * **Professional & Exciting:** Use energetic language (e.g., "Blazing fast," "Privacy-first").
+    * **Visuals:** Use emojis for section headers (e.g., ## 🚀 Getting Started).
+    * **Badges:** Include top-of-page badges for "License" and "Status" if possible.
+
+    ### 📋 TEMPLATE STRUCTURE (Follow this exactly)
+
     # ${projectTitle}
-    
+
+    ![Status](https://img.shields.io/badge/Status-Active-success) ![License](https://img.shields.io/badge/License-MIT-blue)
+
+    **[One-sentence catchy slogan based on the project code]**
+
     ## 📖 Introduction
-    [Write a professional 3-4 sentence summary of what this application does, based on the file names and logic found.]
-    
+    [Write a 3-4 sentence professional summary of what this application does. Focus on the problem it solves and how it works.]
+
     ## ✨ Key Features
-    [Bullet points describing specific capabilities found in the code (e.g., "Real-time graph visualization", "In-browser AI inference").]
-    
+    * **[Feature 1]:** [Description]
+    * **[Feature 2]:** [Description]
+    * **[Feature 3]:** [Description]
+
     ## 🛠️ Tech Stack
-    [List the main frameworks/libraries found in the dependencies (e.g., Next.js, React, Tailwind, Framer Motion).]
-    
+    * **Frontend:** [Infer from package.json]
+    * **Styling:** [Infer from code]
+    * **Logic:** [Infer from code]
+
     ## 🚀 Getting Started
-    
+
     ### Prerequisites
-    - Node.js (v18+)
-    
+    * Node.js (v18+)
+
     ### Installation
     \`\`\`bash
-    git clone https://github.com/yourusername/${projectTitle.toLowerCase().replace(/\s+/g, '-')}.git
+    git clone https://github.com/username/${projectTitle.toLowerCase().replace(/\s+/g, '-')}.git
     cd ${projectTitle.toLowerCase().replace(/\s+/g, '-')}
     npm install
     npm run dev
     \`\`\`
-    
+
     ## 📂 Project Structure
-    [Briefly explain the purpose of key folders like 'components', 'hooks', or 'lib' based on the file tree provided.]
-    
+    [Briefly explain key directories like /components, /hooks, etc.]
+
+    ## 🤝 Contributing
+    Contributions are welcome! Please open an issue or pull request.
+
     ---
-    
-    *Generated with AutoDoc Local*
+    <div align="center">
+      <sub>Generated with AutoDoc Local</sub>
+    </div>
     `;
 
     try {
@@ -115,7 +131,7 @@ export function useWebLLM() {
       ];
 
       // @ts-ignore
-      const res = await engine.current!.chat.completions.create({ messages: messages as any, temperature: 0.2 }); // Lower temperature = more obedient
+      const res = await engine.current!.chat.completions.create({ messages: messages as any, temperature: 0.2 });
       setStatus('ready');
       return res.choices[0].message.content;
     } catch (err) {
