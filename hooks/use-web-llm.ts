@@ -45,35 +45,54 @@ export function useWebLLM() {
     }
   };
 
-  // --- UPDATED: Accepts 'projectTitle' explicitly ---
   const generateProjectReadme = async (tree: string, dependencies: string, snippets: string, projectTitle: string) => {
     if (!engine.current) await initEngine();
     setStatus('generating');
 
-    // We explicitly tell the AI the title so it doesn't hallucinate or repeat instructions
-    const systemPrompt = `You are a Senior Software Architect. 
-    Generate a COMPREHENSIVE README.md for the project titled "${projectTitle}".
+    // --- REFINED PROMPT ---
+    const systemPrompt = `You are an expert Technical Writer and Software Architect.
     
-    # Guidelines
-    1. **Title**: Use "${projectTitle}" as the main H1 title.
-    2. **Domain Analysis**: Analyze the 'Code Snippets' to write a specific Introduction (e.g., if you see 'MoodEntry', explain it's a Mood Tracker).
-    3. **Tech Stack**: List languages/libs found in 'Dependencies'.
+    Your task is to write a PROFESSIONAL GITHUB README.md for the project "${projectTitle}".
     
-    # Required Output Structure:
+    ### STRICT RULES:
+    1. **DO NOT** copy or output the raw code provided in the context.
+    2. **DO NOT** write "Here is the code".
+    3. **DO** analyze the logic to write *descriptions* of what the code does.
+    4. **DO** use proper Markdown formatting (H1, H2, Bold, Code Blocks for bash commands only).
+    
+    ### README STRUCTURE (Follow this exactly):
+    
     # ${projectTitle}
-    ## 🚀 Introduction
-    [Write 2-3 sentences about what the app does based on the code]
-
+    
+    ## 📖 Introduction
+    [Write a professional 3-4 sentence summary of what this application does, based on the file names and logic found.]
+    
     ## ✨ Key Features
-    [Bullet points derived from class names like 'AuthController' -> 'User Authentication']
-
+    [Bullet points describing specific capabilities found in the code (e.g., "Real-time graph visualization", "In-browser AI inference").]
+    
     ## 🛠️ Tech Stack
-    [List from dependencies]
-
+    [List the main frameworks/libraries found in the dependencies (e.g., Next.js, React, Tailwind, Framer Motion).]
+    
+    ## 🚀 Getting Started
+    
+    ### Prerequisites
+    - Node.js (v18+)
+    
+    ### Installation
+    \`\`\`bash
+    git clone https://github.com/yourusername/${projectTitle.toLowerCase().replace(/\s+/g, '-')}.git
+    cd ${projectTitle.toLowerCase().replace(/\s+/g, '-')}
+    npm install
+    npm run dev
+    \`\`\`
+    
     ## 📂 Project Structure
-    [Briefly describe key folders]
-
-    Do not include conversational filler. Output only Markdown.`;
+    [Briefly explain the purpose of key folders like 'components', 'hooks', or 'lib' based on the file tree provided.]
+    
+    ---
+    
+    *Generated with AutoDoc Local*
+    `;
 
     try {
       const messages = [
@@ -81,20 +100,22 @@ export function useWebLLM() {
         { 
           role: "user", 
           content: `
-          --- FILE STRUCTURE ---
+          Analyze this project context to write the README.
+          
+          --- FILE TREE ---
           ${tree}
           
-          --- DEPENDENCIES ---
+          --- PACKAGE.JSON / DEPENDENCIES ---
           ${dependencies}
           
-          --- CODE SNIPPETS (Logic Analysis) ---
+          --- KEY CODE SNIPPETS (For Analysis Only - DO NOT COPY) ---
           ${snippets}
           ` 
         }
       ];
 
       // @ts-ignore
-      const res = await engine.current!.chat.completions.create({ messages: messages as any, temperature: 0.3 });
+      const res = await engine.current!.chat.completions.create({ messages: messages as any, temperature: 0.2 }); // Lower temperature = more obedient
       setStatus('ready');
       return res.choices[0].message.content;
     } catch (err) {
